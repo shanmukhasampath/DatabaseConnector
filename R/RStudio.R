@@ -268,7 +268,7 @@ getSchemaNames.default <- function(conn, catalog = NULL) {
 getSchemaNames.DatabaseConnectorDbiConnection <- function(conn, catalog = NULL) {
   schema_name <- "main"
   if((conn@dbms == 'bigquery' & ("dbiConnection" %in% slotNames(conn))) ){
-    schema_name <- conn_bq_dbi@server %>% stringr::str_extract("(?<=bq_dbi_dataset=\\s)(.+)(?=\\s,)")
+    schema_name <- stringr::str_extract(conn_bq_dbi@server, "(?<=bq_dbi_dataset=\\s)(.+)(?=\\s,)")
   }
   return(schema_name)
 }
