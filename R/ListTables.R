@@ -42,8 +42,8 @@ getTableNames <- function(connection, databaseSchema) {
     return(toupper(tables))
   }
   if (connection@dbms == 'bigquery' & ("dbiConnection" %in% slotNames(connection)) ) {
-    tables <- dbListTables(connection@dbiConnection, schema = databaseSchema) %>% stringr::str_to_lower()
-    return(toupper(tables))
+    tables <- dbListTables(connection@dbiConnection, schema = databaseSchema)
+    return((tables))
   }
   
   if (is.null(databaseSchema)) {

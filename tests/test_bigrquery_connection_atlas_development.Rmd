@@ -28,10 +28,11 @@ connectionDetails = DatabaseConnector::createConnectionDetails(
 ```
 
 ```{r}
-
+conn_bq_jdbc <- DatabaseConnector::connect(connectionDetails)
 ```
 
 
+## Test bigrquery
 
 ```{r}
 
@@ -83,18 +84,21 @@ Sys.setenv(JAVA_HOME='C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.232.09-hotspot\\'
 ```{r}
 devtools::load_all()
 
-connectionDetails <- DatabaseConnector::createConnectionDetails(
-  dbms = "bigquery",
-  bq_project = "atlas-development-270609",
-  bq_dataset = "dummy_df6v2_1k_13_finngen_omop",
-  bq_billing = "atlas-development-270609"
+connectionDetails_bq_dbi <- DatabaseConnector::createConnectionDetails(
+  dbms = "bigquery-dbi",
+  bq_dbi_project = "atlas-development-270609",
+  bq_dbi_dataset = "dummy_df6v2_1k_13_finngen_omop",
+  bq_dbi_billing = "atlas-development-270609"
 )
 
 
-conn <- DatabaseConnector::connect(connectionDetails)
+conn_bq_dbi <- DatabaseConnector::connect(connectionDetails_bq_dbi)
 
 ```
 
+```{r}
+DatabaseConnector::dbListTables(conn_bq_dbi)
+```
 
 ```{r}
 DatabaseConnector::dbGetQuery(conn, "SELECT * FROM PERSON", n = 10)
