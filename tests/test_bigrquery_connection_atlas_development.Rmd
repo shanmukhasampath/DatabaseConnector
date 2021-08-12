@@ -9,6 +9,30 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+Before change 
+```{r}
+library(DatabaseConnector)
+
+project_id <- "atlas-development-270609"
+service_email <- "146473670970-compute@developer.gserviceaccount.com"
+service_key <- "C:\\Users\\javier\\.ssh\\gq\\computerenginedfault.json"
+
+connectionDetails = DatabaseConnector::createConnectionDetails(
+  dbms = "bigquery",
+  connectionString = stringr::str_glue("jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId={project_id};OAuthType=0;OAuthServiceAcctEmail={service_email};OAuthPvtKeyPath={service_key};Timeout=1000"),
+  user="",
+  password="",
+  pathToDriver = "C:\\Users\\javier\\.r\\jdbc_drivers\\bigquery"
+)
+
+```
+
+```{r}
+
+```
+
+
+
 ```{r}
 
 #jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/home/javier/jdbc/computerenginedfault.json;Timeout=1000
@@ -73,7 +97,7 @@ conn <- DatabaseConnector::connect(connectionDetails)
 
 
 ```{r}
-DatabaseConnector::dbGetQuery(conn, "SELECT * FROM person", n = 10)
+DatabaseConnector::dbGetQuery(conn, "SELECT * FROM PERSON", n = 10)
 ```
 
 

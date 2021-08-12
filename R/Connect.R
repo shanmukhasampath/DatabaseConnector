@@ -62,13 +62,13 @@ createConnectionDetails <- function(dbms,
                                     port = NULL,
                                     extraSettings = NULL,
                                     oracleDriver = "thin",
-                                    bq_project = NULL,
-                                    bq_dataset = NULL,
-                                    bq_billing = NULL,
+                                    bq_dbi_project = NULL,
+                                    bq_dbi_dataset = NULL,
+                                    bq_dbi_billing = NULL,
                                     connectionString = NULL,
                                     pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")) {
   pathToDriver <- path.expand(pathToDriver)
-  if (!dir.exists(pathToDriver) && dbms != "sqlite" && dbms != "bigquery") { 
+  if (!dir.exists(pathToDriver) && dbms != "sqlite" && dbms != "bigquery-dbi") { 
     if (file.exists(pathToDriver)) {
       abort(paste0("The folder location pathToDriver = '", pathToDriver, "' points to a file, but should point to a folder."))
     } else {
@@ -79,9 +79,9 @@ createConnectionDetails <- function(dbms,
   }
   
   result <- list(dbms = dbms,
-                 bq_project = bq_project,
-                 bq_dataset = bq_dataset,
-                 bq_billing = bq_billing,
+                 bq_dbi_project = bq_dbi_project,
+                 bq_dbi_dataset = bq_dbi_dataset,
+                 bq_dbi_billing = bq_dbi_billing,
                  extraSettings = extraSettings,
                  oracleDriver = oracleDriver,
                  pathToDriver = pathToDriver)
@@ -169,9 +169,9 @@ connect <- function(connectionDetails = NULL,
                     port = NULL,
                     extraSettings = NULL,
                     oracleDriver = "thin",
-                    bq_project = NULL,
-                    bq_dataset = NULL,
-                    bq_billing = NULL,
+                    bq_dbi_project = NULL,
+                    bq_dbi_dataset = NULL,
+                    bq_dbi_billing = NULL,
                     connectionString = NULL,
                     pathToDriver = Sys.getenv("DATABASECONNECTOR_JAR_FOLDER")) {
   if (!missing(connectionDetails) && !is.null(connectionDetails)) {
@@ -182,9 +182,9 @@ connect <- function(connectionDetails = NULL,
                           port = connectionDetails$port(),
                           extraSettings = connectionDetails$extraSettings,
                           oracleDriver = connectionDetails$oracleDriver,
-                          bq_project = connectionDetails$bq_project,
-                          bq_dataset = connectionDetails$bq_dataset,
-                          bq_billing = connectionDetails$bq_billing,
+                          bq_dbi_project = connectionDetails$bq_dbi_project,
+                          bq_dbi_dataset = connectionDetails$bq_dbi_dataset,
+                          bq_dbi_billing = connectionDetails$bq_dbi_billing,
                           connectionString = connectionDetails$connectionString(),
                           pathToDriver = connectionDetails$pathToDriver)
     
@@ -192,7 +192,7 @@ connect <- function(connectionDetails = NULL,
   }
   
   pathToDriver <- path.expand(pathToDriver)
-  if (!dir.exists(pathToDriver) && dbms != "sqlite" && dbms != "bigquery") { 
+  if (!dir.exists(pathToDriver) && dbms != "sqlite" && dbms != "bigquery-dbi") { 
     if (file.exists(pathToDriver)) {
       abort(paste0("The folder location pathToDriver = '", pathToDriver, "' points to a file, but should point to a folder."))
     } else {
@@ -494,39 +494,39 @@ connect <- function(connectionDetails = NULL,
     attr(connection, "dbms") <- dbms
     return(connection)
   }
-  # if (dbms == "bigquery") {
-  #   inform("Connecting using BigQuery driver")
-  #   
-  #   files <- list.files(path = pathToDriver, full.names = TRUE)
-  #   for (jar in files) {
-  #     rJava::.jaddClassPath(jar)
-  #   }
-  #   
-  #   jarPath <- findPathToJar("^GoogleBigQueryJDBC42\\.jar$", pathToDriver)
-  #   driver <- getJbcDriverSingleton("com.simba.googlebigquery.jdbc42.Driver", jarPath)
-  #   if (missing(connectionString) || is.null(connectionString)) {
-  #     connectionString <- paste0("jdbc:BQDriver:", server)
-  #     if (!missing(extraSettings) && !is.null(extraSettings)) {
-  #       connectionString <- paste0(connectionString, "?", extraSettings)
-  #     }
-  #   }
-  #   connection <- connectUsingJdbcDriver(driver,
-  #                                        connectionString,
-  #                                        user = user,
-  #                                        password = password,
-  #                                        dbms = dbms)
-  #   attr(connection, "dbms") <- dbms
-  #   return(connection)
-  # }
   if (dbms == "bigquery") {
+    inform("Connecting using BigQuery driver")
+
+    files <- list.files(path = pathToDriver, full.names = TRUE)
+    for (jar in files) {
+      rJava::.jaddClassPath(jar)
+    }
+
+    jarPath <- findPathToJar("^GoogleBigQueryJDBC42\\.jar$", pathToDriver)
+    driver <- getJbcDriverSingleton("com.simba.googlebigquery.jdbc42.Driver", jarPath)
+    if (missing(connectionString) || is.null(connectionString)) {
+      connectionString <- paste0("jdbc:BQDriver:", server)
+      if (!missing(extraSettings) && !is.null(extraSettings)) {
+        connectionString <- paste0(connectionString, "?", extraSettings)
+      }
+    }
+    connection <- connectUsingJdbcDriver(driver,
+                                         connectionString,
+                                         user = user,
+                                         password = password,
+                                         dbms = dbms)
+    attr(connection, "dbms") <- dbms
+    return(connection)
+  }
+  if (dbms == "bigquery-dbi") {
     inform("Connecting using BigQuery driver (bigrquery-DBI)")
   
-    if(is.null(bq_project)){abort("Connection to bigrquery needs a bq_project")}
-    if(is.null(bq_billing)){bq_billing=bq_project}
+    if(is.null(bq_dbi_project)){abort("Connection to bigrquery needs a bq_dbi_project")}
+    if(is.null(bq_dbi_billing)){bq_dbi_billing=bq_dbi_project}
     
     
     ensure_installed("bigrquery")
-    connection <- connectUsingBigrquery(bq_project, bq_dataset, bq_billing)
+    connection <- connectUsingBigrquery(bq_dbi_project, bq_dbi_dataset, bq_dbi_billing)
     attr(connection, "dbms") <- "bigquery"
     return(connection)
   }
@@ -575,17 +575,17 @@ connectUsingJdbcDriver <- function(jdbcDriver,
   return(connection)
 }
 
-connectUsingBigrquery <- function(bq_project, bq_dataset, bq_billing) {
+connectUsingBigrquery <- function(bq_dbi_project, bq_dbi_dataset, bq_dbi_billing) {
   
   dbiConnection <- DBI::dbConnect(
     bigrquery::bigquery(),
-    project = bq_project,
-    dataset = bq_dataset, 
-    billing = bq_billing 
+    project = bq_dbi_project,
+    dataset = bq_dbi_dataset, 
+    billing = bq_dbi_billing 
   )
   
   connection <- new("DatabaseConnectorDbiConnection",
-                    server = paste("bq_project=", bq_project, ", bq_dataset=", bq_dataset, ", bq_billing=", bq_billing),
+                    server = paste("bq_dbi_project=", bq_dbi_project, ", bq_dbi_dataset=", bq_dbi_dataset, ", bq_dbi_billing=", bq_dbi_billing),
                     dbiConnection = dbiConnection,
                     identifierQuote = "'",
                     stringQuote = "'",
