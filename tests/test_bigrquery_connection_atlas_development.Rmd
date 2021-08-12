@@ -9,8 +9,10 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-Before change 
+Test using the existing JDBC driver
 ```{r}
+Sys.setenv(JAVA_HOME='C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.232.09-hotspot\\')
+
 library(DatabaseConnector)
 
 project_id <- "atlas-development-270609"
@@ -32,52 +34,44 @@ conn_bq_jdbc <- DatabaseConnector::connect(connectionDetails)
 ```
 
 
-## Test bigrquery
+## Test bigrquery using DBI
 
 ```{r}
-
-#jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/home/javier/jdbc/computerenginedfault.json;Timeout=1000
-
-
 library(bigrquery)
 
+# autheticate using the token downloaded from GCD
 bq_auth(path = "C:\\Users\\javier\\.ssh\\gq\\computerenginedfault.json")
 
 ```
 
 ```{r}
+library(DBI)
 
-
-projectid = "atlas-development-270609"
-
-tb <- bq_project_query(projectid, "SELECT * FROM dummy_df6v2_1k_13_finngen_omop.person")
-bq_table_download(tb)
-```
-
-```{r}
- library(DBI)
-
-con <- dbConnect(
+conn_bigrquery <- dbConnect(
   bigrquery::bigquery(),
   project = "atlas-development-270609",
   dataset = "dummy_df6v2_1k_13_finngen_omop",
   billing = "atlas-development-270609"
 )
-con
+conn_bigrquery
 #> <BigQueryConnection>
 #>   Dataset: publicdata.samples
 #>   Billing: gargle-169921
 
-dbListTables(con)
+dbListTables(conn_bigrquery)
 
-dbGetQuery(con, "SELECT * FROM person", n = 10)
+dbGetQuery(conn_bigrquery, "SELECT * FROM person", n = 10)
 ```
 
 
-# test changes
+# Test DatabaseConnector after including the bigrquery-dbi option 
 
 ```{r}
-Sys.setenv(JAVA_HOME='C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.232.09-hotspot\\')
+library(bigrquery)
+
+# autheticate using the token downloaded from GCD
+bq_auth(path = "C:\\Users\\javier\\.ssh\\gq\\computerenginedfault.json")
+
 ```
 
 
@@ -94,6 +88,7 @@ connectionDetails_bq_dbi <- DatabaseConnector::createConnectionDetails(
 
 conn_bq_dbi <- DatabaseConnector::connect(connectionDetails_bq_dbi)
 
+conn_bq_dbi
 ```
 
 ```{r}
@@ -101,7 +96,7 @@ DatabaseConnector::dbListTables(conn_bq_dbi)
 ```
 
 ```{r}
-DatabaseConnector::dbGetQuery(conn, "SELECT * FROM PERSON", n = 10)
+DatabaseConnector::dbGetQuery(conn_bq_dbi, "SELECT * FROM person", n = 10)
 ```
 
 
