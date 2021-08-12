@@ -234,8 +234,10 @@ compileReconnectCode.default <- function(connection) {
 }
 
 compileReconnectCode.DatabaseConnectorDbiConnection <- function(connection) {
-  code <- sprintf("library(DatabaseConnector)\ncon <- connect(dbms = \"sqlite\", server = \"%s\")", 
-                  connection@server)
+  if(connection@dbms == 'sqlite' | connection@dbms == 'bigquery' ){
+    code <- sprintf("library(DatabaseConnector)\ncon <- connect(dbms = \"sqlite\", server = \"%s\")", 
+                    connection@server)
+  }
   return(code)
 }
 

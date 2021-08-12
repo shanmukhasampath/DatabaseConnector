@@ -1,0 +1,79 @@
+---
+title: "testing bigrquery in finngen.atlas-development"
+author: "Javier Gracia-Tabuenca"
+date: "8/11/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+
+#jdbc:bigquery://https://www.googleapis.com/bigquery/v2:443;ProjectId=atlas-development-270609;OAuthType=0;OAuthServiceAcctEmail=146473670970-compute@developer.gserviceaccount.com;OAuthPvtKeyPath=/home/javier/jdbc/computerenginedfault.json;Timeout=1000
+
+
+library(bigrquery)
+
+bq_auth(path = "C:\\Users\\javier\\.ssh\\gq\\computerenginedfault.json")
+
+```
+
+```{r}
+
+
+projectid = "atlas-development-270609"
+
+tb <- bq_project_query(projectid, "SELECT * FROM dummy_df6v2_1k_13_finngen_omop.person")
+bq_table_download(tb)
+```
+
+```{r}
+ library(DBI)
+
+con <- dbConnect(
+  bigrquery::bigquery(),
+  project = "atlas-development-270609",
+  dataset = "dummy_df6v2_1k_13_finngen_omop",
+  billing = "atlas-development-270609"
+)
+con
+#> <BigQueryConnection>
+#>   Dataset: publicdata.samples
+#>   Billing: gargle-169921
+
+dbListTables(con)
+
+dbGetQuery(con, "SELECT * FROM person", n = 10)
+```
+
+
+# test changes
+
+```{r}
+Sys.setenv(JAVA_HOME='C:\\Program Files\\AdoptOpenJDK\\jdk-8.0.232.09-hotspot\\')
+```
+
+
+```{r}
+devtools::load_all()
+
+connectionDetails <- DatabaseConnector::createConnectionDetails(
+  dbms = "bigquery",
+  bq_project = "atlas-development-270609",
+  bq_dataset = "dummy_df6v2_1k_13_finngen_omop",
+  bq_billing = "atlas-development-270609"
+)
+
+
+conn <- DatabaseConnector::connect(connectionDetails)
+
+```
+
+
+```{r}
+DatabaseConnector::dbGetQuery(conn, "SELECT * FROM person", n = 10)
+```
+
+

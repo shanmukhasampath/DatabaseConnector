@@ -37,7 +37,7 @@
 #'
 #' @export
 getTableNames <- function(connection, databaseSchema) {
-  if (connection@dbms == 'sqlite') {
+  if (connection@dbms == 'sqlite' | connection@dbms == 'bigquery' ) {
     tables <- dbListTables(connection@dbiConnection, schema = databaseSchema)
     return(toupper(tables))
   }
