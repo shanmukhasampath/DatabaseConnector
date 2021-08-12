@@ -178,6 +178,10 @@ previewObject <- function(connection, rowLimit, catalog = NULL, table = NULL, sc
   } else {
     databaseSchema <- paste(catalog, schema, sep = ".")
   }
+  if((connection@dbms == 'bigquery' & ("dbiConnection" %in% slotNames(connection))) ){
+    catalog <- stringr::str_extract(connection@server, "(?<=bq_dbi_project=\\s)(.+)(?=\\s,\\sbq_dbi_data)")
+    databaseSchema <- paste(catalog, schema, sep = ".")
+  }
   sql <- "SELECT TOP 1000 * FROM @databaseSchema.@table;"
   sql <- SqlRender::render(sql = sql, databaseSchema = databaseSchema, table = table)
   sql <- SqlRender::translate(sql = sql, targetDialect = connection@dbms)
@@ -268,7 +272,7 @@ getSchemaNames.default <- function(conn, catalog = NULL) {
 getSchemaNames.DatabaseConnectorDbiConnection <- function(conn, catalog = NULL) {
   schema_name <- "main"
   if((conn@dbms == 'bigquery' & ("dbiConnection" %in% slotNames(conn))) ){
-    schema_name <- stringr::str_extract(conn_bq_dbi@server, "(?<=bq_dbi_dataset=\\s)(.+)(?=\\s,)")
+    schema_name <- stringr::str_extract(conn@server, "(?<=bq_dbi_dataset=\\s)(.+)(?=\\s,)")
   }
   return(schema_name)
 }
