@@ -582,7 +582,7 @@ connectUsingBigrquery <- function(bq_dbi_project, bq_dbi_dataset, bq_dbi_billing
     project = bq_dbi_project,
     dataset = bq_dbi_dataset, 
     billing = bq_dbi_billing, 
-    page_size = 150000
+    page_size = getOption("databaseconnector_page_size", default = NULL)
   )
   
   connection <- new("DatabaseConnectorDbiConnection",
